@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadContent } from '../../lib/content/load';
+import { formatDate, tagSlug } from '../../lib/content/normalize';
+import { sortPostsByCreated } from '../../lib/content/sort';
+import type { PostContent, TagInfo } from '../../lib/content/types';
+import { SECTION_LABELS, type SectionSlug } from '../../lib/site/config';
+
+export async function getStaticPaths() {
+	const content = await loadContent();
+
+	return content.tags.map((tag) => {
+		const posts = content.posts.filter((post) =>
+			post.tags.some((item) => tagSlug(item) === tag.slug),
+		);
+
+		return {
+			params: { tag: tag.slug },
+			props: { tag, posts: sortPostsByCreated(posts) },
+		};
+	});
+}
+
+interface Props {
+	tag: TagInfo;
+	posts: PostContent[];
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<BaseLayout
+	title={`Tag: ${tag.label} | Notion-powered site`}
+	description={`Posts tagged ${tag.label}.`}
+>
+	<h1>#{tag.label}</h1>
+	<p class="meta">Posts with this tag.</p>
+	{posts.length === 0 ? (
+		<p>No posts found.</p>
+	) : (
+		<div class="list-grid">
+			{posts.map((post) => (
+				<article class="card">
+					<a href={`/p/${post.slug}`}>
+						<h2>{post.title}</h2>
+					</a>
+					<p class="meta">
+						{post.section === 'blog'
+							? 'Blog'
+							: SECTION_LABELS[post.section as SectionSlug]}
+						{' · '}Created {formatDate(post.createdAt)}
+						{post.updatedAt && ` · Updated ${formatDate(post.updatedAt)}`}
+						{post.updatedBy && ` · Updated by ${post.updatedBy}`}
+					</p>
+					{post.summary && <p>{post.summary}</p>}
+				</article>
+			))}
+		</div>
+	)}
+</BaseLayout>

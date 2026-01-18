@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { formatDate, tagSlug } from '../lib/content/normalize';
+import { loadContent } from '../lib/content/load';
+import { sortPostsByCreated } from '../lib/content/sort';
+import { SECTION_LABELS } from '../lib/site/config';
+
+const content = await loadContent();
+const posts = sortPostsByCreated(content.posts);
+---
+
+<BaseLayout title="Blog | Notion-powered site" description="All published posts.">
+	<h1>Blog</h1>
+	<p class="meta">All published posts, newest first.</p>
+	{posts.length === 0 ? (
+		<p>No posts yet.</p>
+	) : (
+		<div class="list-grid">
+			{posts.map((post) => (
+				<article class="card">
+					<a href={`/p/${post.slug}`}>
+						<h2>{post.title}</h2>
+					</a>
+					<p class="meta">
+						{post.section === 'blog' ? 'Blog' : SECTION_LABELS[post.section]} ·
+						Created {formatDate(post.createdAt)}
+						{post.updatedAt && ` · Updated ${formatDate(post.updatedAt)}`}
+						{post.updatedBy && ` · Updated by ${post.updatedBy}`}
+					</p>
+					{post.summary && <p>{post.summary}</p>}
+					{post.tags.length > 0 && (
+						<p>
+							{post.tags.map((tag) => (
+								<a class="pill tag" href={`/t/${tagSlug(tag)}`}>{tag}</a>
+							))}
+						</p>
+					)}
+				</article>
+			))}
+		</div>
+	)}
+</BaseLayout>

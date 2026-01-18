@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SECTION_LABELS, SECTION_SLUGS } from '../lib/site/config';
+
+const sectionLinks = SECTION_SLUGS.map((slug) => ({
+	slug,
+	label: SECTION_LABELS[slug],
+}));
+---
+
+<BaseLayout title="Home | Notion-powered site">
+	<section class="card">
+		<h1>Personal site</h1>
+		<p class="meta">Static-first, authored in Notion.</p>
+		<ul>
+			{sectionLinks.map((link) => (
+				<li>
+					<a href={`/${link.slug}`}>{link.label}</a>
+				</li>
+			))}
+			<li>
+				<a href="/blog">Blog</a>
+			</li>
+		</ul>
+	</section>
+</BaseLayout>

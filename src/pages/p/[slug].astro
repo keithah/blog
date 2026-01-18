@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadContent } from '../../lib/content/load';
+import { formatDate, tagSlug } from '../../lib/content/normalize';
+import { SECTION_LABELS, type SectionSlug } from '../../lib/site/config';
+
+export async function getStaticPaths() {
+	const content = await loadContent();
+
+	return content.posts.map((post) => ({
+		params: { slug: post.slug },
+		props: { post },
+	}));
+}
+
+const { post } = Astro.props;
+const sectionLabel =
+	post.section === 'blog'
+		? 'Blog'
+		: SECTION_LABELS[post.section as SectionSlug];
+---
+
+<BaseLayout title={`${post.title} | ${sectionLabel}`}>
+	<p class="pill">{sectionLabel}</p>
+	<h1>{post.title}</h1>
+	<p class="meta">
+		Created {formatDate(post.createdAt)}
+		{post.updatedAt && ` · Updated ${formatDate(post.updatedAt)}`}
+		{post.updatedBy && ` · Updated by ${post.updatedBy}`}
+	</p>
+	{post.tags.length > 0 && (
+		<p>
+			{post.tags.map((tag) => (
+				<a class="pill tag" href={`/t/${tagSlug(tag)}`}>{tag}</a>
+			))}
+		</p>
+	)}
+	{post.summary && <p>{post.summary}</p>}
+	<article class="card" set:html={post.html} />
+</BaseLayout>

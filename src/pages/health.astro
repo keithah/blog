@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadContent } from '../lib/content/load';
+import { SECTION_SLUGS } from '../lib/site/config';
+
+const content = await loadContent();
+const sectionsWithContent = content.pages.map((page) => page.slug);
+---
+
+<BaseLayout title="Health">
+	<h1>Health</h1>
+	<ul>
+		<li>Published posts: {content.posts.length}</li>
+		<li>Unique tags: {content.tags.length}</li>
+		<li>
+			Sections with summaries: {sectionsWithContent.length}/
+			{SECTION_SLUGS.length}
+		</li>
+	</ul>
+</BaseLayout>

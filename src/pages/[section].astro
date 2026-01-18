@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadContent } from '../lib/content/load';
+import { formatDate, tagSlug } from '../lib/content/normalize';
+import { sortPostsForSection } from '../lib/content/sort';
+import type { PostContent } from '../lib/content/types';
+import { SECTION_LABELS, SECTION_SLUGS, type SectionSlug } from '../lib/site/config';
+
+export async function getStaticPaths() {
+	const content = await loadContent();
+
+	return SECTION_SLUGS.map((section) => {
+		const posts = content.posts.filter((post) => post.section === section);
+		const page = content.pages.find((entry) => entry.slug === section);
+
+		return {
+			params: { section },
+			props: {
+				section,
+				page,
+				posts: sortPostsForSection(posts),
+			},
+		};
+	});
+}
+
+interface Props {
+	section: SectionSlug;
+	page?: Awaited<ReturnType<typeof loadContent>>['pages'][number];
+	posts: PostContent[];
+}
+
+const { section, page, posts } = Astro.props;
+const sectionLabel = SECTION_LABELS[section];
+---
+
+<BaseLayout
+	title={`${sectionLabel} | Notion-powered site`}
+	description={`${sectionLabel} content and posts.`}
+>
+	<h1>{sectionLabel}</h1>
+	<section>
+		<h2>Summary</h2>
+		{page ? (
+			<article class="card" set:html={page.html} />
+		) : (
+			<p>No content yet.</p>
+		)}
+	</section>
+
+	<section>
+		<h2>Posts</h2>
+		{posts.length === 0 ? (
+			<p>No posts yet.</p>
+		) : (
+			<ul class="post-list">
+				{posts.map((post) => (
+					<li>
+						<a href={`/p/${post.slug}`}>{post.title}</a>
+						<div class="meta">
+							Created {formatDate(post.createdAt)}
+							{post.updatedAt && ` · Updated ${formatDate(post.updatedAt)}`}
+							{post.updatedBy && ` · Updated by ${post.updatedBy}`}
+							{post.path && ` · ${post.path}`}
+						</div>
+						{post.tags.length > 0 && (
+							<div>
+								{post.tags.map((tag) => (
+									<a class="pill tag" href={`/t/${tagSlug(tag)}`}>{tag}</a>
+								))}
+							</div>
+						)}
+					</li>
+				))}
+			</ul>
+		)}
+	</section>
+</BaseLayout>

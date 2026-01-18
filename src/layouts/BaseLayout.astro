@@ -1,0 +1,46 @@
+---
+import '../../styles/base.css';
+import { SECTION_LABELS, SECTION_SLUGS } from '../lib/site/config';
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description } = Astro.props;
+const navLinks = [
+	...SECTION_SLUGS.map((slug) => ({ slug, label: SECTION_LABELS[slug] })),
+	{ slug: 'blog', label: 'Blog' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		{description && <meta name="description" content={description} />}
+		<title>{title}</title>
+	</head>
+	<body>
+		<header>
+			<a href="/" aria-label="Home">
+				<strong>Home</strong>
+			</a>
+			<nav aria-label="Site">
+				<ul>
+					{navLinks.map((link) => (
+						<li>
+							<a href={`/${link.slug}`}>{link.label}</a>
+						</li>
+					))}
+				</ul>
+			</nav>
+		</header>
+		<main class="page">
+			<slot />
+		</main>
+		<footer>Powered by Notion + Astro.</footer>
+	</body>
+</html>
